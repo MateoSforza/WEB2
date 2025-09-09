@@ -1,0 +1,63 @@
+Resumen de Cambios y Estructura del Proyecto
+========================================
+
+1. Conexión a MongoDB Atlas
+--------------------------
+- Se actualizó el archivo `.env` con la URI de conexión a tu cluster de MongoDB Atlas, usando el usuario y contraseña que creaste.
+- Se configuró la base de datos `MetodologiasWeb` como destino de la conexión.
+- Se verificó que el backend se conecta correctamente a MongoDB.
+
+2. Instalación de Dependencias
+-----------------------------
+- Se ejecutó `npm install` dentro de la carpeta `MDW-TM-2025-main` para instalar todas las dependencias necesarias del proyecto.
+
+3. Estructura de Archivos Importantes
+-------------------------------------
+- `MDW-TM-2025-main/`
+    - `.env`: Configuración de variables de entorno (puerto y URI de MongoDB).
+    - `package.json` y `package-lock.json`: Definen las dependencias y scripts del proyecto.
+    - `src/`
+        - `index.ts`: Archivo principal del backend (servidor Express y conexión a MongoDB).
+        - `controllers/`: Lógica de controladores (por ejemplo, `userController.ts`).
+        - `models/`: Modelos de datos de Mongoose (por ejemplo, `userModel.ts`).
+        - `routes/`: Definición de rutas de la API (por ejemplo, `userRoutes.ts`).
+
+4. Frontend y Backend
+---------------------
+- **Backend:**
+  - Todo el código backend está en la carpeta `MDW-TM-2025-main/src/`.
+  - Usa Node.js, Express y Mongoose para la API y la conexión a MongoDB.
+- **Frontend:**
+  - En este proyecto, no hay una carpeta específica para frontend ni archivos de frontend (HTML, CSS, JS de cliente). Todo lo que tienes es backend/API.
+  - Si necesitas agregar un frontend, deberías crear una carpeta aparte (por ejemplo, `frontend/`) y ahí poner tus archivos de React, Angular, HTML, etc.
+
+5. Limpieza de Archivos
+-----------------------
+- Se detectó un archivo `package-lock.json` fuera de la carpeta del proyecto principal. Solo debes conservar el que está dentro de `MDW-TM-2025-main`.
+
+6. Notas Finales
+----------------
+- Para iniciar el backend, usa el comando `npm run dev` dentro de `MDW-TM-2025-main`.
+- Puedes probar la API accediendo a `http://localhost:3000/` en tu navegador o usando herramientas como Postman para los endpoints de usuarios.
+
+7. Cambios en el Modelo y Controlador de Usuario
+-----------------------------------------------
+- Se agregó el campo `password` al modelo de usuario (`src/models/userModel.ts`) y se aseguró que el campo `email` sea único.
+- En el controlador de usuarios (`src/controllers/userController.ts`), ahora la contraseña se hashea usando bcrypt antes de guardar el usuario en la base de datos.
+- Si el email ya existe, se devuelve un error.
+- Esto es necesario para la autenticación segura y para cumplir con los requisitos de la materia.
+
+8. Endpoint de Login y Autenticación JWT
+----------------------------------------
+- Se agregó el endpoint POST `/api/users/login` para autenticación de usuarios.
+- El usuario envía su email y contraseña. Si son correctos, recibe un JWT válido por 10 minutos.
+- El JWT se genera usando la librería `jsonwebtoken` y una clave secreta.
+- Esto permite proteger rutas y validar la identidad del usuario en la API.
+
+9. Protección de Endpoints con JWT
+----------------------------------
+- Se creó el middleware `authenticateJWT` en `src/middleware/auth.ts` para validar el token JWT en las rutas protegidas.
+- Se aplicó este middleware a las rutas de productos, de modo que solo los usuarios autenticados pueden acceder a ellas.
+- Si el token es inválido o no se envía, la API responde con error 401.
+
+Si necesitas agregar un frontend, avísame y te ayudo a crearlo.
