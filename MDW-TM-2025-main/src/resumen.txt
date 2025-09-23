@@ -1,0 +1,155 @@
+EXPLICACIÓN DE LA CARPETA SRC - BACKEND NODE.JS/EXPRESS
+========================================================
+
+ESTRUCTURA GENERAL:
+-------------------
+La carpeta src/ contiene todo el código fuente del backend de la aplicación.
+Está organizada siguiendo el patrón MVC (Modelo-Vista-Controlador) y separación de responsabilidades.
+
+ARCHIVOS Y CARPETAS:
+====================
+
+📄 index.ts
+-----------
+- ARCHIVO PRINCIPAL de la aplicación.
+- Configura Express, middlewares globales, rutas y conexión a MongoDB.
+- Inicia el servidor en el puerto especificado en .env
+- Conecta a MongoDB Atlas usando Mongoose.
+- Define las rutas principales: /api/users y /api/products
+
+📁 controllers/
+---------------
+Contiene la lógica de negocio de la aplicación.
+
+• userController.ts:
+  - createUser: Crea usuarios con contraseña hasheada usando bcrypt
+  - getUsers: Obtiene todos los usuarios
+  - getUser: Obtiene un usuario por ID
+  - updateUser: Actualiza datos de un usuario
+  - deleteUser: Elimina un usuario
+  - loginUser: Autentica usuario y devuelve JWT access/refresh tokens
+  - refreshAccessToken: Genera nuevo access token usando refresh token
+
+• productController.ts:
+  - getProducts: Devuelve lista de productos (simulada para testing)
+  - Funciones básicas para manejo de productos
+
+📁 dto/
+-------
+Data Transfer Objects - Definen y validan la estructura de datos.
+
+• create-user.dto.ts:
+  - Valida datos para crear usuarios
+  - Campos: name, lastName, email, password, age
+  - Usa decoradores de class-validator (@IsString, @IsEmail, etc.)
+
+• update-user.dto.ts:
+  - Valida datos para actualizar usuarios
+  - Todos los campos son opcionales (@IsOptional)
+
+• product.dto.ts:
+  - Estructura para validar datos de productos
+  - (Archivo creado pero puede estar vacío o con validaciones básicas)
+
+📁 middleware/
+--------------
+Funciones que se ejecutan entre request y response.
+
+• auth.ts:
+  - authenticateJWT: Middleware que valida tokens JWT
+  - Verifica header Authorization: Bearer <token>
+  - Protege rutas que requieren autenticación
+  - Decodifica el token y agrega info del usuario al request
+
+• validate-dto.ts:
+  - validateDto: Middleware genérico para validar DTOs
+  - Usa class-transformer y class-validator
+  - Valida automáticamente el body de las peticiones
+  - Devuelve errores detallados si la validación falla
+
+📁 models/
+----------
+Esquemas de base de datos usando Mongoose.
+
+• userModel.ts:
+  - Define el esquema de usuarios para MongoDB
+  - Campos: name, lastName, email (único), password, age
+  - Se conecta con la colección "users" en MongoDB
+
+📁 routes/
+----------
+Definición de endpoints y rutas de la API.
+
+• userRoutes.ts:
+  - POST /api/users - Crear usuario (con validación DTO)
+  - GET /api/users - Obtener todos los usuarios
+  - GET /api/users/:id - Obtener usuario por ID
+  - PUT /api/users/:id - Actualizar usuario (con validación DTO)
+  - DELETE /api/users/:id - Eliminar usuario
+  - POST /api/users/login - Login de usuario
+  - POST /api/users/refresh-token - Refrescar access token
+
+• productRoutes.ts:
+  - GET /api/products - Obtener productos (protegido con JWT)
+  - Usa middleware authenticateJWT para proteger todas las rutas
+  - Requiere token válido en header Authorization
+
+FLUJO DE AUTENTICACIÓN:
+=======================
+
+1. REGISTRO:
+   - POST /api/users con datos del usuario
+   - Se valida con create-user.dto.ts
+   - Se hashea la contraseña con bcrypt
+   - Se guarda en MongoDB
+
+2. LOGIN:
+   - POST /api/users/login con email y password
+   - Se verifica la contraseña hasheada
+   - Se generan access token (10 min) y refresh token (7 días)
+   - Se devuelven ambos tokens al cliente
+
+3. ACCESO A RUTAS PROTEGIDAS:
+   - Se envía access token en header: Authorization: Bearer <token>
+   - El middleware authenticateJWT valida el token
+   - Si es válido, permite acceso al endpoint
+
+4. RENOVACIÓN DE TOKEN:
+   - POST /api/users/refresh-token con refresh token
+   - Se valida el refresh token
+   - Se genera un nuevo access token
+   - Se devuelve el nuevo access token
+
+TECNOLOGÍAS USADAS:
+===================
+- Express.js: Framework web
+- TypeScript: Lenguaje tipado
+- Mongoose: ODM para MongoDB
+- bcrypt: Hash de contraseñas
+- jsonwebtoken: Autenticación JWT
+- class-validator: Validación de datos
+- class-transformer: Transformación de objetos
+- dotenv: Variables de entorno
+
+VARIABLES DE ENTORNO (.env):
+============================
+- PORT: Puerto del servidor (3000)
+- MONGO_URI: URL de conexión a MongoDB Atlas
+- JWT_SECRET: Clave secreta para firmar tokens JWT
+
+SEGURIDAD IMPLEMENTADA:
+=======================
+- Contraseñas hasheadas con bcrypt
+- Autenticación JWT con tokens de corta duración
+- Validación de datos con DTOs
+- Protección de rutas sensibles
+- Manejo de errores y validaciones
+
+PRÓXIMOS PASOS POSIBLES:
+========================
+- Agregar modelo de productos en MongoDB
+- Implementar CRUD completo para productos
+- Agregar validaciones más específicas
+- Implementar roles y permisos
+- Agregar logging y monitoreo
+- Documentación con Swagger
