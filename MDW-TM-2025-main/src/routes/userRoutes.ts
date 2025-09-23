@@ -5,6 +5,7 @@ import {
   getUsers,
   updateUser,
   loginUser,
+  refreshAccessToken,
 } from "../controllers/userController";
 import express from "express";
 import { validateDto } from "../middleware/validate-dto";
@@ -21,5 +22,6 @@ router.get("/:id", getUser);
 router.delete("/:id", deleteUser);
 router.put("/:id", validateDto(UpdateUserDto), updateUser);
 router.post("/login", loginUser);
+router.post("/refresh-token", refreshAccessToken);
 
 export default router;

@@ -78,31 +78,61 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
+// Puedes guardar los refresh tokens en memoria (solo para pruebas, en producción usa BD)
+let refreshTokens: string[] = [];
+
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    // Busca el usuario por email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Usuario o contraseña incorrectos." });
     }
 
-    // Compara la contraseña
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Usuario o contraseña incorrectos." });
     }
 
-    // Genera el JWT (expira en 10 minutos)
-    const token = jwt.sign(
+    // Access token (10 min)
+    const accessToken = jwt.sign(
       { userId: user._id, email: user.email },
-      process.env.JWT_SECRET || "secreto", // Usa una variable de entorno en producción
+      process.env.JWT_SECRET || "secreto",
       { expiresIn: "10m" }
     );
 
-    res.json({ token });
+    // Refresh token (7 días)
+    const refreshToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET || "secreto",
+      { expiresIn: "7d" }
+    );
+
+    refreshTokens.push(refreshToken);
+
+    res.json({ accessToken, refreshToken });
   } catch (error) {
     res.status(500).json({ message: "Error en el login.", error });
+  }
+};
+
+// Endpoint para refrescar el access token
+export const refreshAccessToken = (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken || !refreshTokens.includes(refreshToken)) {
+    return res.status(401).json({ message: "Refresh token inválido." });
+  }
+
+  try {
+    const payload = jwt.verify(refreshToken, process.env.JWT_SECRET || "secreto") as any;
+    const newAccessToken = jwt.sign(
+      { userId: payload.userId, email: payload.email },
+      process.env.JWT_SECRET || "secreto",
+      { expiresIn: "10m" }
+    );
+    res.json({ accessToken: newAccessToken });
+  } catch (error) {
+    res.status(401).json({ message: "Refresh token inválido o expirado." });
   }
 };
